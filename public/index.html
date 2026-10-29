@@ -1,0 +1,140 @@
+function normalizeWhitespace(value) {
+  return value.replace(/\s+/g, ' ').trim();
+}
+
+function extractSentences(text) {
+  return text
+    .split(/[.!?\n]+/)
+    .map((sentence) => sentence.trim())
+    .filter(Boolean)
+    .slice(0, 30);
+}
+
+function makeTitleFromText(text, titleOverride) {
+  if (titleOverride && titleOverride.trim()) {
+    return titleOverride.trim();
+  }
+
+  const sentences = extractSentences(text);
+  if (!sentences.length) return 'Untitled Document';
+
+  const candidate = sentences[0].replace(/^[\-\*\s]+/, '');
+  return candidate.length > 90 ? candidate.slice(0, 87).trim() + '...' : candidate;
+}
+
+function topWords(text) {
+  const words = text.toLowerCase()
+    .replace(/[^a-z0-9\s]/g, ' ')
+    .split(/\s+/)
+    .filter((word) => word.length > 3 && !['this','that','with','from','have','will','into','over','your','they','them','what','when','about','could','should'].includes(word));
+
+  const freq = {};
+  for (const word of words) {
+    freq[word] = (freq[word] || 0) + 1;
+  }
+
+  return Object.entries(freq)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 8)
+    .map(([word]) => word);
+}
+
+function detectThemes(text) {
+  const keywords = [
+    'roadmap',
+    'strategy',
+    'product',
+    'team',
+    'launch',
+    'risk',
+    'growth',
+    'customer',
+    'research',
+    'security',
+    'ops',
+    'marketing',
+    'budget',
+    'performance',
+    'workflow',
+    'timeline'
+  ];
+
+  const matches = [];
+  const lower = text.toLowerCase();
+  for (const keyword of keywords) {
+    if (lower.includes(keyword)) matches.push(keyword);
+  }
+
+  return matches.length ? [...new Set(matches)].slice(0, 6) : ['business context', 'execution plan', 'team priorities'];
+}
+
+function extractStakeholders(text) {
+  const candidates = [
+    'product team',
+    'design team',
+    'engineering team',
+    'marketing team',
+    'customer success',
+    'leadership',
+    'partners',
+    'stakeholders',
+    'executive team'
+  ];
+
+  const lower = text.toLowerCase();
+  return candidates.filter((candidate) => lower.includes(candidate)).slice(0, 5);
+}
+
+function extractActionItems(text) {
+  const sentences = extractSentences(text);
+  const actionLike = sentences.filter((sentence) => /\b(should|must|need to|will|can|plan to|schedule|review|launch|deliver|complete|update|follow up)\b/i.test(sentence));
+  return actionLike.slice(0, 5).map((item) => normalizeWhitespace(item));
+}
+
+function extractDecisions(text) {
+  const sentences = extractSentences(text);
+  const decisions = sentences.filter((sentence) => /\b(decided|approved|confirmed|agreed|priority|chosen|recommended|finalized)\b/i.test(sentence));
+  return decisions.slice(0, 4).map((item) => normalizeWhitespace(item));
+}
+
+function extractRisks(text) {
+  const sentences = extractSentences(text);
+  const risks = sentences.filter((sentence) => /\b(risk|issue|delay|challenge|concern|bottleneck|dependency|warning|unknown|uncertain)\b/i.test(sentence));
+  return risks.slice(0, 4).map((item) => normalizeWhitespace(item));
+}
+
+function extractQuestions(text) {
+  const sentences = extractSentences(text);
+  const questions = sentences.filter((sentence) => sentence.includes('?'));
+  return questions.slice(0, 4).map((item) => normalizeWhitespace(item));
+}
+
+function summarize(text) {
+  const sentences = extractSentences(text);
+  const core = sentences.slice(0, 3).join(' ');
+  const words = topWords(text);
+
+  if (!core) return 'This document contains a clear set of operational and strategic details that should be reviewed and translated into action.';
+  return `${core}. Main themes include ${words.join(', ')}. This suggests a need for coordinated execution and review.`;
+}
+
+function analyzeDocument(text, titleOverride = '') {
+  const cleanText = normalizeWhitespace(text);
+  const docTitle = makeTitleFromText(cleanText, titleOverride);
+
+  return {
+    title: docTitle,
+    summary: summarize(cleanText),
+    themes: detectThemes(cleanText),
+    stakeholders: extractStakeholders(cleanText),
+    actions: extractActionItems(cleanText),
+    risks: extractRisks(cleanText),
+    decisions: extractDecisions(cleanText),
+    questions: extractQuestions(cleanText),
+    keywords: topWords(cleanText),
+  };
+}
+
+module.exports = {
+  analyzeDocument,
+};

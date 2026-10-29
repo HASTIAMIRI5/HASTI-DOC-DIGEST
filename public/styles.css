@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Hasti Doc Digest</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <div class="page-shell">
+      <header class="topbar">
+        <div>
+          <span class="eyebrow">Document Intelligence</span>
+          <h1>Hasti Doc Digest</h1>
+        </div>
+      </header>
+
+      <main class="layout">
+        <section class="panel form-panel">
+          <h2>Analyze a document</h2>
+          <form id="digest-form">
+            <label>
+              Optional title
+              <input type="text" name="title" placeholder="Quarterly roadmap" />
+            </label>
+
+            <label>
+              Paste document text
+              <textarea name="text" rows="18" placeholder="Paste the document content here..." required></textarea>
+            </label>
+
+            <button type="submit">Generate digest</button>
+          </form>
+        </section>
+
+        <section class="panel output-panel">
+          <div id="status" class="status">Ready to analyze a document.</div>
+          <div id="output" class="output empty">Results will appear here.</div>
+        </section>
+      </main>
+    </div>
+
+    <script src="/app.js"></script>
+  </body>
+</html>
